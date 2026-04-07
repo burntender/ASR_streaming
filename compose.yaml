@@ -1,0 +1,22 @@
+services:
+  vibevoice-asr:
+    image: vibevoice-asr:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ${BASE_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
+    gpus: all
+    ipc: host
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    environment:
+      MODEL_DIR: /models/vibevoice
+      HF_HOME: /cache/huggingface
+      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    volumes:
+      - ${MODEL_DIR_HOST:-./models/vibeVoice}:/models/vibevoice:ro
+      - ${AUDIO_DIR_HOST:-./data/audio}:/data/audio
+      - ${HF_CACHE_HOST:-./cache/huggingface}:/cache/huggingface
