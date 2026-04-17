@@ -40,7 +40,7 @@ docker compose build
 docker compose up
 ```
 
-`.env` の `PORT` に公開されます。以下は `PORT=8083` の例です。
+`.env` の `PORT` に公開されます。`CONTAINER_PORT` は通常 `8080` のままでOKです。以下は `PORT=8083` の例です。
 
 ```bash
 curl http://127.0.0.1:8083/v1/audio/transcriptions \

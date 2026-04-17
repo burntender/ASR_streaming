@@ -15,13 +15,13 @@ services:
     environment:
       MODEL_DIR: /models/vibevoice
       OPENAI_COMPAT_MODEL: ${OPENAI_COMPAT_MODEL:-vibevoice-asr}
-      PORT: ${PORT:-8080}
+      PORT: ${CONTAINER_PORT:-8080}
       HF_HOME: /cache/huggingface
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
       ASR_DEVICE: ${ASR_DEVICE:-auto}
       ASR_DTYPE: ${ASR_DTYPE:-auto}
     ports:
-      - "${PORT:-8080}:8080"
+      - "${PORT:-8080}:${CONTAINER_PORT:-8080}"
     command: ["serve"]
     volumes:
       - ${MODEL_DIR_HOST:-./models/vibeVoice}:/models/vibevoice:ro
