@@ -1,4 +1,5 @@
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Annotated
@@ -13,6 +14,36 @@ API_MODEL_NAME = os.environ.get("OPENAI_COMPAT_MODEL", "vibevoice-asr")
 
 app = FastAPI(title="VibeVoice-ASR OpenAI-compatible API")
 asr = VibeVoiceAsr()
+
+
+def convert_to_wav(input_path: Path) -> Path:
+    output = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    output_path = Path(output.name)
+    output.close()
+
+    command = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(input_path),
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-f",
+        "wav",
+        str(output_path),
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        output_path.unlink(missing_ok=True)
+        detail = result.stderr.strip() or "Unsupported or invalid audio file"
+        raise HTTPException(status_code=400, detail=detail)
+    return output_path
 
 
 @app.get("/health")
@@ -54,8 +85,9 @@ async def create_transcription(
             tmp.write(await file.read())
             tmp_path = Path(tmp.name)
 
+        wav_path = convert_to_wav(tmp_path)
         decoded = asr.transcribe(
-            tmp_path,
+            wav_path,
             prompt=prompt,
             return_format="transcription_only",
         )
@@ -65,3 +97,5 @@ async def create_transcription(
     finally:
         if "tmp_path" in locals():
             tmp_path.unlink(missing_ok=True)
+        if "wav_path" in locals():
+            wav_path.unlink(missing_ok=True)

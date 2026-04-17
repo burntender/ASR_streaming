@@ -42,6 +42,8 @@ docker compose up
 
 `.env` の `PORT` に公開されます。`CONTAINER_PORT` は通常 `8080` のままでOKです。以下は `PORT=8083` の例です。
 
+アップロードされた音声は API 側で `ffmpeg` を使って 16kHz / mono の wav に変換してから ASR に渡します。主な対象は `wav`, `m4a`, `mp3` です。
+
 ```bash
 curl http://127.0.0.1:8083/v1/audio/transcriptions \
   -F file=@./data/audio/sample.wav \
