@@ -13,10 +13,12 @@
 
 - `Dockerfile`: 実行イメージ
 - `compose.yaml`: GPU とボリュームマウント設定
+- `api.py`: OpenAI 互換の `/v1/audio/transcriptions` API
+- `asr_core.py`: CLI と API が共有する VibeVoice-ASR 推論処理
 - `transcribe.py`: 単発文字起こし CLI
 - `.env.example`: ホスト側パスの設定例
 
-## 使い方
+## OpenAI 互換 API
 
 1. 必要なら設定ファイルを作る
 
@@ -26,11 +28,52 @@ cp .env.example .env
 
 2. イメージをビルド
 
+既定は ARM / CPU でも動く `python:3.12-slim-bookworm` を使います。
+
 ```bash
 docker compose build
 ```
 
-3. 音声ファイルを `./audio` に置いて実行
+3. API サーバを起動
+
+```bash
+docker compose up
+```
+
+`.env` の `PORT` に公開されます。以下は `PORT=8083` の例です。
+
+```bash
+curl http://127.0.0.1:8083/v1/audio/transcriptions \
+  -F file=@./data/audio/sample.wav \
+  -F model=vibevoice-asr \
+  -F language=ja-JP
+```
+
+レスポンス:
+
+```json
+{
+  "text": "文字起こし結果"
+}
+```
+
+syaberukun 側の設定例:
+
+```json
+{
+    "asr": {
+      "provider": "openai_compatible",
+      "base_url": "http://127.0.0.1:8083/v1",
+      "model": "vibevoice-asr",
+      "api_key_env": null,
+      "request_timeout_ms": 120000
+  }
+}
+```
+
+## CLI
+
+音声ファイルを `./data/audio` に置いて実行します。
 
 ```bash
 docker compose run --rm vibevoice-asr \
@@ -51,5 +94,6 @@ docker compose run --rm vibevoice-asr \
 
 - モデルはイメージに含めず、ホストから読み取り専用マウントします
 - `TRANSFORMERS_OFFLINE=1` が既定なので、ローカルモデルだけを使います
-- `pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime` が合わない場合は `.env` の `BASE_IMAGE` を変えてください
-- この構成はまず CLI 用です。必要なら次に FastAPI や OpenAI 互換 API を足せます
+- ARM / CPU ホストでは既定の `.env.example` のまま使えます。PyTorch は CPU wheel index から入れます
+- x86_64 + NVIDIA GPU で CUDA 版を使う場合は、`.env` で `BASE_IMAGE=pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime` と `INSTALL_TORCH=0` を指定し、`docker compose -f compose.yaml -f compose.gpu.yaml build` / `docker compose -f compose.yaml -f compose.gpu.yaml up` を使ってください
+- API は初回リクエスト時にモデルを読み込み、以後は同じプロセス内で再利用します

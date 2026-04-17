@@ -5,17 +5,24 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        BASE_IMAGE: ${BASE_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
-    gpus: all
+        BASE_IMAGE: ${BASE_IMAGE:-python:3.12-slim-bookworm}
+        INSTALL_TORCH: ${INSTALL_TORCH:-1}
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
     ipc: host
     stdin_open: true
     tty: true
     working_dir: /app
     environment:
       MODEL_DIR: /models/vibevoice
+      OPENAI_COMPAT_MODEL: ${OPENAI_COMPAT_MODEL:-vibevoice-asr}
+      PORT: ${PORT:-8080}
       HF_HOME: /cache/huggingface
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
-      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      ASR_DEVICE: ${ASR_DEVICE:-auto}
+      ASR_DTYPE: ${ASR_DTYPE:-auto}
+    ports:
+      - "${PORT:-8080}:8080"
+    command: ["serve"]
     volumes:
       - ${MODEL_DIR_HOST:-./models/vibeVoice}:/models/vibevoice:ro
       - ${AUDIO_DIR_HOST:-./data/audio}:/data/audio

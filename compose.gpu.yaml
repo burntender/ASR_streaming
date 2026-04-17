@@ -1,0 +1,12 @@
+services:
+  vibevoice-asr:
+    build:
+      args:
+        BASE_IMAGE: ${BASE_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
+        INSTALL_TORCH: ${INSTALL_TORCH:-0}
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
+    gpus: all
+    environment:
+      ASR_DEVICE: ${ASR_DEVICE:-auto}
+      ASR_DTYPE: ${ASR_DTYPE:-auto}
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
