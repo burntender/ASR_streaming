@@ -97,5 +97,6 @@ docker compose run --rm vibevoice-asr \
 - モデルはイメージに含めず、ホストから読み取り専用マウントします
 - `TRANSFORMERS_OFFLINE=1` が既定なので、ローカルモデルだけを使います
 - ARM / CPU ホストでは既定の `.env.example` のまま使えます。PyTorch は CPU wheel index から入れます
+- ARM / CPU ホストでは `ASR_DISABLE_MKLDNN=1` が既定です。CPU推論中に `Xbyak::Error` が出る環境向けの回避設定です
 - x86_64 + NVIDIA GPU で CUDA 版を使う場合は、`.env` で `BASE_IMAGE=pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime` と `INSTALL_TORCH=0` を指定し、`docker compose -f compose.yaml -f compose.gpu.yaml build` / `docker compose -f compose.yaml -f compose.gpu.yaml up` を使ってください
 - API は初回リクエスト時にモデルを読み込み、以後は同じプロセス内で再利用します

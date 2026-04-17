@@ -16,6 +16,15 @@ DTYPE_MAP = {
 }
 
 
+def configure_torch_backend() -> None:
+    if os.environ.get("ASR_DISABLE_MKLDNN", "1").lower() not in ("0", "false", "no"):
+        torch.backends.mkldnn.enabled = False
+
+    cpu_threads = os.environ.get("ASR_CPU_THREADS")
+    if cpu_threads:
+        torch.set_num_threads(int(cpu_threads))
+
+
 def validate_local_model(model_dir: Path) -> None:
     required = [
         model_dir / "config.json",
@@ -93,6 +102,7 @@ class VibeVoiceAsr:
         dtype_name: str | None = None,
         max_new_tokens: int | None = None,
     ) -> None:
+        configure_torch_backend()
         self.model_dir = Path(model_dir or os.environ.get("MODEL_DIR", "/models/vibevoice"))
         self.requested_device = device or os.environ.get("ASR_DEVICE", "auto")
         self.dtype_name = dtype_name or os.environ.get("ASR_DTYPE", "auto")

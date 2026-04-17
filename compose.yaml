@@ -20,6 +20,8 @@ services:
       TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE:-1}
       ASR_DEVICE: ${ASR_DEVICE:-auto}
       ASR_DTYPE: ${ASR_DTYPE:-auto}
+      ASR_DISABLE_MKLDNN: ${ASR_DISABLE_MKLDNN:-1}
+      ASR_CPU_THREADS: ${ASR_CPU_THREADS:-}
     ports:
       - "${PORT:-8080}:${CONTAINER_PORT:-8080}"
     command: ["serve"]
